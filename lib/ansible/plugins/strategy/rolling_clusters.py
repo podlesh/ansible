@@ -36,7 +36,6 @@ class StrategyModule(LinearStrategyModule):
         cluster_dict = collections.defaultdict(list)
         for host in all_hosts:
             cluster_dict[cluster_id_extract(host)].append(host)
-        print(cluster_dict)
 
         # sort the clusters to ensure consistent and predictable ordering
         cluster_ids = list(cluster_dict.keys())
@@ -63,7 +62,10 @@ class StrategyModule(LinearStrategyModule):
     def run(self, iterator, play_context):
         play = iterator._play
         batches = self._get_serialized_batches(play)
-        print(batches)
-        return super(StrategyModule, self).run(iterator, play_context)
+        result = self._tqm.RUN_OK
+        for batch in batches:
+            self._inventory.restrict_to_hosts(batch)
+            result |= super(StrategyModule, self).run(iterator, play_context)
+        return result
 
 
